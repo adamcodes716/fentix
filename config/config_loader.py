@@ -135,6 +135,60 @@ def create_app_config() -> AppConfig:
 # Crear la configuración global
 APP_CONFIG = create_app_config()
 
+class ConfigLoader:
+    """
+    Configuration loader class for compatibility with existing code.
+    Provides access to the global APP_CONFIG instance.
+    """
+    
+    def __init__(self):
+        """Initialize ConfigLoader with the global config."""
+        self.config = APP_CONFIG
+    
+    def get_config(self) -> AppConfig:
+        """Get the application configuration."""
+        return self.config
+    
+    def reload_config(self) -> AppConfig:
+        """Reload configuration from files."""
+        global APP_CONFIG
+        APP_CONFIG = create_app_config()
+        self.config = APP_CONFIG
+        return self.config
+    
+    @property
+    def trading(self) -> TradingConfig:
+        """Get trading configuration."""
+        return self.config.trading
+    
+    @property
+    def binance(self) -> BinanceConfig:
+        """Get Binance configuration."""
+        return self.config.binance
+    
+    @property
+    def risk_management(self) -> RiskManagementConfig:
+        """Get risk management configuration."""
+        return self.config.risk_management
+    
+    @property
+    def llm(self) -> LLMConfig:
+        """Get LLM configuration."""
+        return self.config.llm
+    
+    @property
+    def tools(self) -> ToolsConfig:
+        """Get tools configuration."""
+        return self.config.tools
+    
+    @property
+    def logging(self) -> LoggingConfig:
+        """Get logging configuration."""
+        return self.config.logging
+
+# Create a global instance for backward compatibility
+config_loader = ConfigLoader()
+
 if __name__ == "__main__":
     print("Configuration loaded successfully!")
     print(f"Symbol: {APP_CONFIG.trading.symbol}")

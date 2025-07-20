@@ -1,0 +1,86 @@
+# FenixAI Trading Bot - Development Docker Compose
+# For local Windows development environment
+
+version: '3.8'
+
+services:
+  fenixai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: fenixai-dev
+    restart: unless-stopped
+    
+    # Environment configuration
+    environment:
+      # Core Application Settings
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      
+      # Development mode indicators
+      - ENV=development
+      - DEBUG=true
+      
+    # Volume mounts for persistence
+    volumes:
+      # Use development environment file
+      - ./.env.development:/app/.env:ro
+      
+      # Development: mount source code for hot reload (read-write for development)
+      - ./:/app
+      
+      # Development data volumes
+      - fenixai-dev-logs:/app/logs
+      - fenixai-dev-cache:/app/cache
+      - fenixai-dev-memory:/app/memory
+      
+      # Configuration override (optional)
+      - ./config:/app/config:ro
+    
+    # Network configuration
+    networks:
+      - fenixai-dev-network
+    
+    # Port mapping
+    ports:
+      - "8020:8020"
+    
+    # Dependencies
+    depends_on:
+      - redis-dev
+    
+    # Development logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis for development
+  redis-dev:
+    image: redis:7-alpine
+    container_name: fenixai-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - fenixai-dev-redis:/data
+    networks:
+      - fenixai-dev-network
+
+# Named volumes for development data persistence
+volumes:
+  fenixai-dev-logs:
+    driver: local
+  fenixai-dev-cache:
+    driver: local
+  fenixai-dev-memory:
+    driver: local
+  fenixai-dev-redis:
+    driver: local
+
+# Development network
+networks:
+  fenixai-dev-network:
+    driver: bridge

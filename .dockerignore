@@ -1,0 +1,114 @@
+# FenixAI Docker Ignore
+# Optimized for clean container builds
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+*.temp
+.cache/
+cache/
+
+# Docker files (avoid recursive copying)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation and development files
+docs/
+*.md
+LICENSE
+.editorconfig
+.pre-commit-config.yaml
+
+# Test files and coverage reports
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Node.js (if any frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (will be mounted as volumes)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Backup and temporary files
+*.bak
+*.backup
+*.old
+*.orig
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Security and sensitive files
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+
+# Development and debugging
+debug/
+.debug/
+profiling/
+.profiling/

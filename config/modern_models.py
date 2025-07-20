@@ -103,25 +103,59 @@ class ModelManager:
 # --- CONFIGURACIÓN DE MODELOS ESPECIALIZADOS HETEROGÉNEOS ---
 # Basado en la investigación para reducir alucinaciones del 41% a <5%
 
-_DEFAULT_LLAMA_MODEL = "llama3.2:1b" # Modelo de emergencia
+_DEFAULT_LLAMA_MODEL = "llama3.2:3b" # Modelo de emergencia - using available variant
 
-# Fetch available Ollama models once
+# Fetch available Ollama models from remote server
 def _get_ollama_models_list() -> List[str]:
+    """
+    Fetch available models from the configured Ollama server (local or remote).
+    Uses HTTP API instead of CLI to support external servers.
+    """
     try:
-        result = subprocess.run(['ollama', 'list'], capture_output=True, text=True, timeout=10)
-        if result.returncode == 0:
-            lines = result.stdout.strip().split('\n')
-            available = [line.split()[0] for line in lines[1:] if line.strip()]
-            logger.info(f"Successfully fetched Ollama models: {available}")
+        import requests
+        import os
+        from dotenv import load_dotenv
+        
+        # Load environment variables
+        load_dotenv()
+        
+        # Get Ollama URL from environment or use default
+        ollama_url = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+        if not ollama_url.startswith('http'):
+            ollama_url = f"http://{ollama_url}"
+        
+        logger.info(f"Attempting to fetch models from Ollama server: {ollama_url}")
+        
+        # Make API call to get models
+        response = requests.get(f"{ollama_url}/api/tags", timeout=10)
+        
+        if response.status_code == 200:
+            models_data = response.json()
+            available = [model['name'] for model in models_data.get('models', [])]
+            logger.info(f"Successfully fetched {len(available)} Ollama models from {ollama_url}: {available}")
             return available
         else:
-            logger.error(f"Could not fetch Ollama models list. Error: {result.stderr.strip()}")
+            logger.error(f"Could not fetch models from {ollama_url}. Status: {response.status_code}")
             return []
-    except FileNotFoundError:
-        logger.error("Ollama command-line tool not found. Please ensure Ollama is installed and in PATH.")
-        return []
+            
+    except ImportError:
+        logger.error("requests library not available. Cannot fetch models from remote Ollama server.")
+        # Fallback to CLI if requests not available
+        try:
+            result = subprocess.run(['ollama', 'list'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                available = [line.split()[0] for line in lines[1:] if line.strip()]
+                logger.info(f"Successfully fetched Ollama models via CLI: {available}")
+                return available
+            else:
+                logger.error(f"CLI fallback failed. Error: {result.stderr.strip()}")
+                return []
+        except FileNotFoundError:
+            logger.error("Ollama CLI not found and requests unavailable. Cannot fetch models.")
+            return []
     except Exception as e:
-        logger.error(f"Error fetching available Ollama models: {e}")
+        logger.error(f"Error fetching available Ollama models from API: {e}")
         return []
 
 _AVAILABLE_OLLAMA_MODELS_LIST = _get_ollama_models_list()

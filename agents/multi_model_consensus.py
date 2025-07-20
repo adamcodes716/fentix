@@ -215,15 +215,22 @@ class MultiModelConsensus:
             )
 
     async def _call_model(self, model_name: str, prompt: str, agent_type: str) -> Dict[str, Any]:
-        """Llama a un modelo específico usando ollama"""
+        """Call a specific model using ollama with enhanced configuration"""
         
         try:
             import ollama
+            from config.config_loader_enhanced import ENHANCED_APP_CONFIG
             
-            # Configuración específica por agente
+            # Get Ollama configuration
+            ollama_config = ENHANCED_APP_CONFIG.ollama
+            
+            # Set the Ollama client to use the configured base URL
+            ollama_client = ollama.Client(host=ollama_config.base_url)
+            
+            # Configuration específica por agente
             options = self._get_model_options(agent_type)
             
-            response = ollama.generate(
+            response = ollama_client.generate(
                 model=model_name,
                 prompt=prompt,
                 options=options

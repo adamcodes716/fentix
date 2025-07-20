@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  fenixai:
+    image: adamcodes716/fenixai-trading:latest
+    container_name: fenixai-trading-bot
+    restart: unless-stopped
+    
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      # Override these in .env file on OMV host
+      - OLLAMA_BASE_URL=http://192.168.1.100:11434
+      - TRADING_MODE=paper
+      - LOG_LEVEL=INFO
+      
+    volumes:
+      # OMV-specific paths - adjust YOUR-UUID
+      - /srv/dev-disk-by-uuid-YOUR-UUID/docker/fenixai/data/logs:/app/logs
+      - /srv/dev-disk-by-uuid-YOUR-UUID/docker/fenixai/data/cache:/app/cache
+      - /srv/dev-disk-by-uuid-YOUR-UUID/docker/fenixai/data/memory:/app/memory
+      
+      # Configuration files from OMV host
+      - /srv/dev-disk-by-uuid-YOUR-UUID/docker/fenixai/.env:/app/.env:ro
+      - /srv/dev-disk-by-uuid-YOUR-UUID/docker/fenixai/config:/app/config:ro
+      
+    ports:
+      - "8020:8020"
+      
+    depends_on:
+      - redis
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8020/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    networks:
+      - fenixai-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fenixai-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    
+    volumes:
+      - /srv/dev-disk-by-uuid-YOUR-UUID/docker/fenixai/data/redis:/data
+      
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      
+    networks:
+      - fenixai-network
+
+networks:
+  fenixai-network:
+    driver: bridge

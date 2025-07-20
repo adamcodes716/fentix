@@ -1,3 +1,4 @@
+# Core application dependencies
 aiohttp
 backtesting
 beautifulsoup4
@@ -9,6 +10,8 @@ mplfinance
 numpy
 openai
 pandas
+pandas-ta
+psutil
 pydantic
 pydantic-settings
 pytest
@@ -19,6 +22,15 @@ requests
 scikit-learn
 scipy
 seaborn
-ta-lib
+# ta-lib  # Commented out for Docker - use pandas-ta or alternative
 websockets
-psutil
+
+# Docker and containerization dependencies
+uvicorn[standard]>=0.23.0
+fastapi>=0.104.0
+redis>=5.0.0
+watchdog>=3.0.0  # For development file watching
+
+# Enhanced monitoring and health checks
+httpx>=0.25.0
+prometheus-client>=0.17.0

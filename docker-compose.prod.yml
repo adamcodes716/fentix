@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  fenixai:
+    image: adamcodes716/fenixai-trading:latest  # Use published image for production
+    container_name: fenixai-trading-bot
+    restart: unless-stopped
+    
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - ENV=production
+      - DEBUG=false
+      
+    volumes:
+      # Use production environment file from OMV host path
+      - /srv/dev-disk-by-uuid-ba1cc561-951a-4ddc-9569-9379a876ff67/AppData/Fenix/.env.production:/app/.env:ro
+      
+      # Production data volumes using OMV host paths
+      - /srv/dev-disk-by-uuid-ba1cc561-951a-4ddc-9569-9379a876ff67/AppData/Fenix/data/logs:/app/logs
+      - /srv/dev-disk-by-uuid-ba1cc561-951a-4ddc-9569-9379a876ff67/AppData/Fenix/data/cache:/app/cache
+      - /srv/dev-disk-by-uuid-ba1cc561-951a-4ddc-9569-9379a876ff67/AppData/Fenix/data/memory:/app/memory
+      
+      # Configuration override (optional)
+      - /srv/dev-disk-by-uuid-ba1cc561-951a-4ddc-9569-9379a876ff67/AppData/Fenix/config:/app/config:ro
+      
+    ports:
+      - "8020:8020"
+      
+    depends_on:
+      - redis
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8020/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    
+    networks:
+      - fenixai-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fenixai-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - /srv/dev-disk-by-uuid-ba1cc561-951a-4ddc-9569-9379a876ff67/AppData/Fenix/data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - fenixai-network
+
+# No volumes section needed - using host paths
+networks:
+  fenixai-network:
+    driver: bridge

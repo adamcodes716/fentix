@@ -1,0 +1,59 @@
+# Local Development Docker Compose
+# For Windows development environment
+
+version: '3.8'
+
+services:
+  fenixai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: fenixai-dev
+    restart: unless-stopped
+    
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      
+    volumes:
+      # Use development environment file
+      - ./.env.development:/app/.env:ro
+      
+      # Development: mount source code for hot reload
+      - ./:/app:ro
+      
+      # Local data volumes
+      - fenixai-dev-logs:/app/logs
+      - fenixai-dev-cache:/app/cache
+      - fenixai-dev-memory:/app/memory
+      
+    ports:
+      - "8020:8020"
+      
+    depends_on:
+      - redis-dev
+      
+    networks:
+      - fenixai-dev-network
+
+  redis-dev:
+    image: redis:7-alpine
+    container_name: fenixai-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - fenixai-dev-redis:/data
+    networks:
+      - fenixai-dev-network
+
+volumes:
+  fenixai-dev-logs:
+  fenixai-dev-cache:
+  fenixai-dev-memory:
+  fenixai-dev-redis:
+
+networks:
+  fenixai-dev-network:
+    driver: bridge

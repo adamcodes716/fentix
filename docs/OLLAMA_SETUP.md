@@ -138,16 +138,15 @@ export OLLAMA_MAX_RAM=16GB
 
 #### Fast Setup (Lower Resource Usage)
 ```bash
-ollama pull qwen2.5:0.5b    # Sentiment
-ollama pull cogito:3b       # Technical  
-ollama pull gemma3:4b       # Visual
-ollama pull phi4-mini:3.8b  # QABBA
-ollama pull llama3.2:1b     # Decision
+ollama pull qwen2.5:0.5b    # Sentiment (500MB)
+ollama pull phi3:3.8b       # Technical & QABBA (2GB)  
+ollama pull llava:7b        # Visual analysis (4GB)
+ollama pull gemma2:2b       # General purpose (1.5GB)
 ```
 
 #### Balanced Setup (Recommended)
 ```bash
-ollama pull qwen3:4b              # Sentiment
+ollama pull qwen2.5:7b              # Sentiment
 ollama pull granite3.3:2b         # Technical
 ollama pull gemma3:4b             # Visual
 ollama pull phi4-mini:3.8b        # QABBA

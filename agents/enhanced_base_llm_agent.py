@@ -140,7 +140,7 @@ class EnhancedBaseLLMAgent(Agent, ABC):
 
     def _emergency_fallback_config(self):
         logger.warning(f"[{self.agent_type}] Activating emergency fallback configuration.")
-        self._llm_model_name = "llama3.2:1b"
+        self._llm_model_name = "llama3.2:3b"
         self._supports_tools = False
         self._supports_vision = False
         self._model_timeout = 30
@@ -163,14 +163,21 @@ class EnhancedBaseLLMAgent(Agent, ABC):
             return
             
         try:
-            ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            # Use enhanced configuration for Ollama URL
+            from config.config_loader_enhanced import ENHANCED_APP_CONFIG
+            ollama_config = ENHANCED_APP_CONFIG.ollama
+            
+            ollama_url = ollama_config.base_url
             api_key = os.getenv("OLLAMA_API_KEY", "ollama")
+            
+            # Use configured timeout, falling back to model timeout
+            client_timeout = min(ollama_config.timeout, self._model_timeout) if self._model_timeout else ollama_config.timeout
 
-            logger.info(f"[{self.agent_type}] Setting up OpenAI client for model '{self._llm_model_name}' with timeout: {self._model_timeout}s")
+            logger.info(f"[{self.agent_type}] Setting up OpenAI client for model '{self._llm_model_name}' with Ollama URL: {ollama_url}, timeout: {client_timeout}s")
             self._raw_client = OpenAI(
                 base_url=f"{ollama_url}/v1",
                 api_key=api_key,
-                timeout=self._model_timeout
+                timeout=client_timeout
             )
             
             # Only setup Instructor if tools are supported and not known problematic models
